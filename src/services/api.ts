@@ -44,28 +44,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const authService = {
-  async register(email: string, password: string, nickname?: string): Promise<{ user: User; token: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, nickname })
-    });
-    const data = await handleResponse<any>(response);
-    localStorage.setItem('auth_token', data.token);
-    return { user: data.user, token: data.token };
-  },
-
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await handleResponse<any>(response);
-    localStorage.setItem('auth_token', data.token);
-    return { user: data.user, token: data.token };
-  },
-
   async verify(): Promise<{ valid: boolean; user?: User }> {
     const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
       headers: getAuthHeaders()

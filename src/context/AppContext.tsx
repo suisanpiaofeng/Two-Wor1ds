@@ -79,12 +79,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const result = await authService.login(email, password);
-    setCurrentUser(result.user);
-    setIsAuthenticated(true);
-  };
-
   const logout = async () => {
     await authService.logout();
     setCurrentUser(null);
@@ -282,7 +276,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     collectPost,
     addComment,
     updateTags,
-    login,
     logout,
     isAuthenticated,
     loading,

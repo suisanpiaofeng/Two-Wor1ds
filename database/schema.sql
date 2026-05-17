@@ -49,34 +49,12 @@ CREATE TABLE IF NOT EXISTS likes (
     UNIQUE(post_id, user_id)
 );
 
--- Chat sessions table
-CREATE TABLE IF NOT EXISTS chat_sessions (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    participant_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    last_message_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Messages table
-CREATE TABLE IF NOT EXISTS messages (
-    id UUID PRIMARY KEY,
-    session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
-    sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
 CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
 CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_user_id ON chat_sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_participant_id ON chat_sessions(participant_id);
-CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id);
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_id ON auth_tokens(user_id);
 

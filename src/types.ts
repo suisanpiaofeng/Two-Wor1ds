@@ -48,7 +48,6 @@ export interface AppContextType {
   collectPost: (postId: string) => void;
   addComment: (postId: string, content: string) => void;
   updateTags: (tags: Tag[]) => void;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
