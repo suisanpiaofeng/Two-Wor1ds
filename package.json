@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "init-db": "node scripts/init-db.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "firebase": "^12.13.0",
     "jsonwebtoken": "^9.0.3",
     "leancloud-storage": "^4.15.2",
+    "nodemailer": "^6.9.16",
     "pg": "^8.20.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

@@ -1,91 +1,48 @@
+import path from 'path';
 import pg from 'pg';
-import fs from 'fs';
+import { readFile } from 'fs/promises';
+import { fileURLToPath } from 'url';
 
 const { Client } = pg;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const DATABASE_URL = "postgresql://postgres:weSnzbYONJfBuTuXNEivPPHTtRUKlVtF@yamabiko.proxy.rlwy.net:36381/railway";
+const DATABASE_URL = process.env.DATABASE_URL;
 
-const schema = `
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(64) NOT NULL,
-    nickname VARCHAR(100) NOT NULL,
-    avatar_seed VARCHAR(100),
-    last_active TIMESTAMP DEFAULT NOW(),
-    created_at TIMESTAMP DEFAULT NOW()
-);
+if (!DATABASE_URL) {
+  throw new Error('Missing required environment variable: DATABASE_URL');
+}
 
--- Auth tokens table
-CREATE TABLE IF NOT EXISTS auth_tokens (
-    id SERIAL PRIMARY KEY,
-    token VARCHAR(64) UNIQUE NOT NULL,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
+function getSslConfig() {
+  if (process.env.DATABASE_SSL === 'false') {
+    return false;
+  }
 
--- Posts table
-CREATE TABLE IF NOT EXISTS posts (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    tags TEXT[],
-    likes_count INTEGER DEFAULT 0,
-    comments_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT NOW()
-);
+  return {
+    rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED === 'true'
+  };
+}
 
--- Comments table
-CREATE TABLE IF NOT EXISTS comments (
-    id UUID PRIMARY KEY,
-    post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Likes table
-CREATE TABLE IF NOT EXISTS likes (
-    id SERIAL PRIMARY KEY,
-    post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(post_id, user_id)
-);
-
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-`;
+async function loadSchema() {
+  const schemaPath = path.resolve(__dirname, '../database/schema.sql');
+  return readFile(schemaPath, 'utf8');
+}
 
 async function initDatabase() {
   console.log('Connecting to database...');
-  console.log('Host: yamabiko.proxy.rlwy.net:36381');
 
   const client = new Client({
     connectionString: DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
+    ssl: getSslConfig()
   });
 
   try {
     await client.connect();
     console.log('✅ Connected successfully!');
 
-    console.log('Creating tables...');
+    console.log('Applying schema...');
+    const schema = await loadSchema();
     await client.query(schema);
-
-    console.log('Creating indexes...');
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
-      CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
-      CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
-      CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
-      CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
-      CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_id ON auth_tokens(user_id);
-    `);
 
     console.log('');
     console.log('✅ Database initialized successfully!');
@@ -93,9 +50,12 @@ async function initDatabase() {
     console.log('Tables created:');
     console.log('  ✓ users');
     console.log('  ✓ auth_tokens');
+    console.log('  ✓ email_verification_codes');
     console.log('  ✓ posts');
     console.log('  ✓ comments');
     console.log('  ✓ likes');
+    console.log('  ✓ collections');
+    console.log('  ✓ notifications');
 
   } catch (error) {
     console.error('❌ Error:', error.message);

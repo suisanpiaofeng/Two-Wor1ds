@@ -22,7 +22,7 @@ export function generateNickname(): string {
   return `${adj}${noun}`;
 }
 
-export function formatTimeAgo(timestamp: number): string {
+export function formatPublishedTime(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
 
@@ -33,12 +33,20 @@ export function formatTimeAgo(timestamp: number): string {
   if (minutes < 1) return '刚刚';
   if (minutes < 60) return `${minutes}分钟前`;
   if (hours < 24) return `${hours}小时前`;
-  if (days < 7) return `${days}天前`;
+  if (days < 3) return `${days}天前`;
 
   const date = new Date(timestamp);
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${month}月${day}日`;
+  const nowDate = new Date(now);
+  const sameYear = date.getFullYear() === nowDate.getFullYear();
+
+  return date.toLocaleDateString('zh-CN', sameYear
+    ? { month: 'long', day: 'numeric' }
+    : { year: 'numeric', month: 'long', day: 'numeric' }
+  );
+}
+
+export function formatTimeAgo(timestamp: number): string {
+  return formatPublishedTime(timestamp);
 }
 
 export function getAvatarColor(seed: string | number): string {

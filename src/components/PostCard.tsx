@@ -1,9 +1,6 @@
-import React, { useState } from 'react';
-import type { Post } from '../types';
-import { getAvatarColor, getAvatarLetter } from '../utils/helpers';
-import Comment from './Comment';
-
-const VISIBLE_COMMENTS = 3;
+import type { Post, User } from '../types';
+import { formatPublishedTime } from '../utils/helpers';
+import { getAvatarUrl } from '../utils/avatar';
 
 interface PostCardProps {
   post: Post;
@@ -12,8 +9,9 @@ interface PostCardProps {
   isCollected: boolean;
   onLike: (postId: string) => void;
   onCollect: (postId: string) => void;
-  onComment: (postId: string, content: string) => void;
   onDelete: (postId: string) => void;
+  onOpenDetail: (postId: string) => void;
+  onAvatarClick?: (user: User) => void;
 }
 
 export default function PostCard({
@@ -23,54 +21,53 @@ export default function PostCard({
   isCollected,
   onLike,
   onCollect,
-  onComment,
   onDelete,
+  onOpenDetail,
+  onAvatarClick,
 }: PostCardProps) {
-  const [showComments, setShowComments] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
-  const [commentInput, setCommentInput] = useState('');
-
-  const handleSubmitComment = () => {
-    const trimmed = commentInput.trim();
-    if (trimmed) {
-      onComment(post.id, trimmed);
-      setCommentInput('');
-    }
-  };
-
-  const handleCommentKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmitComment();
-    }
-  };
-
-  const avatarColor = getAvatarColor(post.userAvatarSeed);
-  const avatarLetter = getAvatarLetter(post.userNickname);
-
-  const visibleComments = showAllComments
-    ? post.comments
-    : post.comments.slice(-VISIBLE_COMMENTS);
-  const hasHiddenComments = post.comments.length > VISIBLE_COMMENTS && !showAllComments;
-
   return (
-    <div className="card-base p-4 space-y-3">
+    <div
+      className="card-base p-4 space-y-3 cursor-pointer"
+      onClick={() => onOpenDetail(post.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpenDetail(post.id);
+        }
+      }}
+    >
       <div className="flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-medium flex-shrink-0"
-          style={{ backgroundColor: avatarColor }}
-        >
-          {avatarLetter}
-        </div>
+        <img
+          src={getAvatarUrl(post.userAvatarSeed)}
+          alt={`${post.userNickname} 的头像`}
+          className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-white"
+          onClick={event => {
+            if (post.userId === currentUserId) return;
+            event.stopPropagation();
+            onAvatarClick?.({
+              id: post.userId,
+              nickname: post.userNickname,
+              avatarSeed: post.userAvatarSeed
+            });
+          }}
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-text">{post.userNickname}</span>
+              <div>
+                <span className="font-medium text-gray-text">{post.userNickname}</span>
+                <p className="text-xs text-gray-text/45">{formatPublishedTime(post.createdAt)}</p>
+              </div>
             </div>
             {post.userId === currentUserId && (
               <button
-                onClick={() => onDelete(post.id)}
+                onClick={event => {
+                  event.stopPropagation();
+                  onDelete(post.id);
+                }}
                 className="p-1 text-gray-text/40 hover:text-red-500 btn-interaction"
                 title="删除"
               >
@@ -96,81 +93,111 @@ export default function PostCard({
         </div>
       </div>
 
-      <p className="text-gray-text leading-relaxed whitespace-pre-wrap">{post.content}</p>
+      <p
+        className="text-gray-text leading-relaxed whitespace-pre-wrap"
+        style={{
+          display: '-webkit-box',
+          WebkitLineClamp: 4,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}
+      >
+        {post.content}
+      </p>
 
-      <div className="flex items-center gap-4 pt-2 border-t border-primary-blue/20">
+      <button
+        onClick={event => {
+          event.stopPropagation();
+          onOpenDetail(post.id);
+        }}
+        className="text-sm text-blue-500 hover:text-blue-600"
+      >
+        查看全文
+      </button>
+
+      <div className="flex items-center gap-3 pt-1">
         <button
-          onClick={() => onLike(post.id)}
-          className={`flex items-center gap-1 text-sm btn-interaction ${
-            isLiked ? 'text-primary-blue' : 'text-gray-text/60 hover:text-primary-blue'
+          onClick={event => {
+            event.stopPropagation();
+            onLike(post.id);
+          }}
+          className={`group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
+            isLiked
+              ? 'bg-red-50 text-red-500'
+              : 'bg-gray-50 text-gray-text/70 hover:bg-red-50 hover:text-red-500'
           }`}
+          aria-label={isLiked ? '取消点赞' : '点赞'}
         >
-          <span>{isLiked ? '已赞' : '点赞'}</span>
-          <span>{post.likes > 0 && post.likes}</span>
+          <svg
+            className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110"
+            viewBox="0 0 24 24"
+            fill={isLiked ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 21s-6.716-4.35-9.193-8.02C.747 9.924 2.02 5.5 6.09 4.558c2.128-.492 4.154.274 5.41 1.91 1.255-1.636 3.281-2.402 5.409-1.91 4.07.942 5.344 5.366 3.283 8.422C18.716 16.65 12 21 12 21Z"
+            />
+          </svg>
+          <span className="leading-none">{post.likes > 0 ? post.likes : '点赞'}</span>
         </button>
 
         <button
-          onClick={() => setShowComments(!showComments)}
-          className="text-sm text-gray-text/60 hover:text-primary-blue btn-interaction"
+          onClick={event => {
+            event.stopPropagation();
+            onOpenDetail(post.id);
+          }}
+          className={`group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
+            'bg-gray-50 text-gray-text/70 hover:bg-blue-50 hover:text-blue-500'
+          }`}
+          aria-label="查看评论"
         >
-          评论 {post.comments.length > 0 && `(${post.comments.length})`}
+          <svg
+            className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7 10h10M7 14h6m-8 7 1.95-3.9A8 8 0 1 1 20 12a8 8 0 0 1-8 8H5Z"
+            />
+          </svg>
+          <span className="leading-none">{post.commentsCount > 0 ? post.commentsCount : '评论'}</span>
         </button>
 
         <button
-          onClick={() => onCollect(post.id)}
-          className={`flex items-center gap-1 text-sm btn-interaction ${
-            isCollected ? 'text-primary-blue' : 'text-gray-text/60 hover:text-primary-blue'
+          onClick={event => {
+            event.stopPropagation();
+            onCollect(post.id);
+          }}
+          className={`group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
+            isCollected
+              ? 'bg-yellow-50 text-yellow-500'
+              : 'bg-gray-50 text-gray-text/70 hover:bg-yellow-50 hover:text-yellow-500'
           }`}
+          aria-label={isCollected ? '取消收藏' : '收藏'}
         >
-          {isCollected ? '已收藏' : '收藏'}
+          <svg
+            className="w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110"
+            viewBox="0 0 24 24"
+            fill={isCollected ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m12 3 2.47 5.01 5.53.8-4 3.9.94 5.5L12 15.6l-4.94 2.61.94-5.5-4-3.9 5.53-.8L12 3Z"
+            />
+          </svg>
+          <span className="leading-none">{post.collectionsCount > 0 ? post.collectionsCount : '收藏'}</span>
         </button>
       </div>
-
-      {showComments && (
-        <div className="space-y-3 pt-3 border-t border-primary-blue/20">
-          {hasHiddenComments && (
-            <button
-              onClick={() => setShowAllComments(true)}
-              className="text-xs text-blue-500 hover:text-blue-600"
-            >
-              查看全部 {post.comments.length} 条评论
-            </button>
-          )}
-
-          {visibleComments.map(comment => (
-            <Comment
-              key={comment.id}
-              comment={comment}
-            />
-          ))}
-
-          {showAllComments && post.comments.length > VISIBLE_COMMENTS && (
-            <button
-              onClick={() => setShowAllComments(false)}
-              className="text-xs text-gray-400 hover:text-gray-500"
-            >
-              收起评论
-            </button>
-          )}
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={commentInput}
-              onChange={e => setCommentInput(e.target.value)}
-              onKeyDown={handleCommentKeyDown}
-              placeholder="写下你的评论..."
-              className="flex-1 px-3 py-2 text-sm bg-white border border-primary-blue/50 rounded-card focus:outline-none focus:border-primary-blue text-gray-text placeholder-gray-text/50"
-            />
-            <button
-              onClick={handleSubmitComment}
-              className="px-4 py-2 text-sm bg-primary-blue text-gray-text rounded-card btn-interaction hover:bg-primary-blue/80"
-            >
-              发送
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

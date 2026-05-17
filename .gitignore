@@ -27,3 +27,5 @@ dist-ssr
 
 .env
 .vercel
+.vercel-cli-data/
+.vercel-cli-cache/

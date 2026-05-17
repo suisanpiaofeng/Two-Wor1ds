@@ -3,7 +3,14 @@ import { useApp } from '../context/AppContext';
 import TagEditor from '../components/TagEditor';
 import PostCard from '../components/PostCard';
 
-export default function SquarePage() {
+import type { User } from '../types';
+
+interface SquarePageProps {
+  onOpenPostDetail: (postId: string, focusCommentId?: string) => void;
+  onOpenUserActions: (user: User) => void;
+}
+
+export default function SquarePage({ onOpenPostDetail, onOpenUserActions }: SquarePageProps) {
   const {
     currentUser,
     tags,
@@ -14,7 +21,6 @@ export default function SquarePage() {
     deletePost,
     likePost,
     collectPost,
-    addComment,
     addTag,
     hasMorePosts,
     isLoadingMore,
@@ -25,13 +31,8 @@ export default function SquarePage() {
 
   const [postContent, setPostContent] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [showMyCollection, setShowMyCollection] = useState(false);
 
   const sortedPosts = [...posts].sort((a, b) => b.likes - a.likes);
-
-  const displayedPosts = showMyCollection
-    ? sortedPosts.filter(p => collectedPosts.includes(p.id))
-    : sortedPosts;
 
   const handleTagSelect = (tagId: string) => {
     setSelectedTagIds(prev => [...prev, tagId]);
@@ -131,34 +132,13 @@ export default function SquarePage() {
         </section>
 
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowMyCollection(false)}
-                className={`text-sm font-medium btn-interaction transition ${
-                  !showMyCollection ? 'text-blue-600' : 'text-gray-400'
-                }`}
-              >
-                热门推荐
-              </button>
-              <button
-                onClick={() => setShowMyCollection(true)}
-                className={`text-sm font-medium btn-interaction transition ${
-                  showMyCollection ? 'text-blue-600' : 'text-gray-400'
-                }`}
-              >
-                我的收藏
-              </button>
-            </div>
-          </div>
-
-          {displayedPosts.length === 0 ? (
+          {sortedPosts.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
               <p className="text-lg mb-2">暂无内容</p>
               <p className="text-sm">成为第一个发布的人吧！</p>
             </div>
           ) : (
-            displayedPosts.map(post => (
+            sortedPosts.map(post => (
               <PostCard
                 key={post.id}
                 post={post}
@@ -166,9 +146,10 @@ export default function SquarePage() {
                 isCollected={collectedPosts.includes(post.id)}
                 onLike={() => likePost(post.id)}
                 onCollect={() => collectPost(post.id)}
-                onComment={(_postId, content) => addComment(post.id, content)}
                 onDelete={() => deletePost(post.id)}
                 currentUserId={currentUser?.id || ''}
+                onOpenDetail={onOpenPostDetail}
+                onAvatarClick={onOpenUserActions}
               />
             ))
           )}
@@ -180,7 +161,7 @@ export default function SquarePage() {
             </div>
           )}
 
-          {!hasMorePosts && displayedPosts.length > 0 && (
+          {!hasMorePosts && sortedPosts.length > 0 && (
             <div className="text-center py-4 text-gray-400 text-sm">
               没有更多内容了
             </div>
