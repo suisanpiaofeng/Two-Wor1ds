@@ -24,7 +24,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 - 支持游客模式手动进入。
 - 自动保存 `auth_token` 到 `localStorage`。
 - 启动时可通过 `/api/auth/verify` 自动验证登录态。
-- 游客身份不再自动续登，进入站点时优先显示登录/注册界面。
+- 游客身份支持续用登录态，不会因页面刷新而丢失聊天与消息能力。
 
 ### 2. 注册页交互
 
@@ -124,7 +124,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 - **帖子**: `getAll`、`getById`、`create`、`update`、`delete`、`like`、`collect`、`comment`、`deleteComment`、`likeComment`、`collectComment`
 - **用户**: `updateActivity`、`updateProfile`、`getCollections`、`getMyComments`、`getProfile`
 - **通知**: `getNotifications`、`markRead`、`getUnreadCount`
-- **聊天**: `getAll`、`openDirect`、`getMessages`、`sendMessage`、`markRead`
+- **聊天**: `getAll`、`openDirect`、`getMessages`、`sendMessage`、`markRead`、`deleteConversation`
 
 ## AppContext 状态管理
 
@@ -172,6 +172,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 | `sendCode` | 发送验证码 |
 | `updateProfile` | 更新个人资料 |
 | `loadCollections` | 加载收藏列表 |
+| `loadMyComments` | 加载我的评论列表 |
 | `loadNotifications` | 加载通知列表 |
 | `markNotificationsRead` | 标记通知已读 |
 | `loadConversations` | 加载聊天会话列表 |
@@ -179,6 +180,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 | `loadConversationMessages` | 加载某个会话的全部聊天消息 |
 | `sendChatMessage` | 发送私聊消息 |
 | `markConversationRead` | 标记某个会话已读 |
+| `deleteConversation` | 删除聊天框 |
 | `getUserProfile` | 获取他人主页资料与帖子 |
 | `refreshPosts` | 刷新帖子 |
 | `loadMorePosts` | 加载更多帖子 |
@@ -294,6 +296,7 @@ src/
 ├── services/
 │   └── api.ts
 ├── utils/
+│   ├── avatar.ts
 │   └── helpers.ts
 ├── App.tsx
 ├── main.tsx
@@ -320,7 +323,7 @@ src/
 - 已同步当前部署情况：前后端都已重新部署到正式域名。
 - 已同步前端构建状态：`npm run build` 本地通过。
 - 已同步后端验证码方案：服务端已改为 PostgreSQL 持久化验证码。
-- 已同步登录策略调整：旧游客账号不再自动恢复，游客模式改为登录页手动进入。
+- 已同步游客登录策略：游客可从登录页手动进入，且刷新后仍可保持游客聊天身份。
 - 已同步收藏展示策略：广场页移除收藏列表入口，收藏内容统一在“我”页查看。
 - 已同步收藏状态修复：登录后会主动回填收藏列表，帖子卡片收藏态与个人页收藏数保持一致。
 - 已同步帖子卡片样式更新：点赞、收藏、评论按钮已改为小红书风格图标胶囊按钮。
@@ -334,6 +337,9 @@ src/
 - 已同步通知范围扩展：帖子收藏、评论点赞、评论收藏、评论回复也会进入消息页。
 - 已同步头像操作：点击非本人头像可查看主页或直接发起聊天。
 - 已同步私聊能力：新增会话列表、聊天详情页和他人主页跳转链路。
+- 已同步真实头像能力：个人中心支持上传头像，帖子、评论、消息、聊天页统一展示上传后的头像。
+- 已同步会话管理：支持在消息列表或聊天详情页删除聊天框。
+- 已同步未读刷新修复：底部“消息”标签未读数改为全局轮询与页面激活时刷新，不必先进入消息页。
 
 ### 后续关注
 
