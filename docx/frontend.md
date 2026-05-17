@@ -1,4 +1,4 @@
-# TwoWor1ds 前端功能文档
+# TwoWor1ds 前端开发手册
 
 ## 项目概述
 

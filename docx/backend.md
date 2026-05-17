@@ -1,4 +1,4 @@
-# TwoWor1ds 后端功能文档
+# TwoWor1ds 后端接口与开发手册
 
 ## 项目概述
 
@@ -311,7 +311,7 @@ TwoWor1ds 后端基于 Express，部署到 Vercel Serverless Functions，负责�
 - 已补充 `vercel.json`，明确 Vite 输出目录、函数入口和 SPA 路由回退。
 - 已补充运行时 schema 自检与缺表自动创建，兼容历史未完整初始化的生产库。
 - 已完成 Vercel 生产重新部署并绑定回 `https://twowor1ds.online`。
-- 已完成通知未读链路联调，前端改为通过 `GET /api/notifications/unread-count` 驱动底部消息提醒。
+- 已完成通知未读链路联调，前端已改为通过全局通知列表与会话列表聚合刷新底部消息提醒，`GET /api/notifications/unread-count` 仍可独立使用。
 - 已补充帖子详情接口，支持广场、消息、个人页进入同一全屏详情页。
 - 已补充评论点赞与评论收藏能力，并在运行时自动补齐相关表结构与计数字段。
 - 已补充帖子编辑接口，帖子作者可在详情页重新编辑内容与标签。
