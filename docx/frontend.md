@@ -8,7 +8,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 
 - **框架**: React 19 + TypeScript
 - **构建工具**: Vite 8
-- **路由**: React Router 7
+- **页面切换**: `App.tsx` 内部 overlay 状态切换
 - **样式**: Tailwind CSS 3
 - **状态管理**: React Context + Hooks
 - **API 调用**: 浏览器原生 `fetch`
@@ -123,7 +123,7 @@ TwoWor1ds 前端是一个基于 React + TypeScript 的单页应用，负责用�
 - **认证**: `verify`、`logout`、`quickStart`、`sendCode`、`register`、`login`
 - **帖子**: `getAll`、`getById`、`create`、`update`、`delete`、`like`、`collect`、`comment`、`deleteComment`、`likeComment`、`collectComment`
 - **用户**: `updateActivity`、`updateProfile`、`getCollections`、`getMyComments`、`getProfile`
-- **通知**: `getNotifications`、`markRead`、`getUnreadCount`
+- **通知**: `getNotifications`、`markRead`
 - **聊天**: `getAll`、`openDirect`、`getMessages`、`sendMessage`、`markRead`、`deleteConversation`
 
 ## AppContext 状态管理
@@ -327,7 +327,7 @@ src/
 - 已同步收藏展示策略：广场页移除收藏列表入口，收藏内容统一在“我”页查看。
 - 已同步收藏状态修复：登录后会主动回填收藏列表，帖子卡片收藏态与个人页收藏数保持一致。
 - 已同步帖子卡片样式更新：点赞、收藏、评论按钮已改为小红书风格图标胶囊按钮。
-- 已同步消息提醒修复：底部消息标签改为基于后端未读数接口展示徽章。
+- 已同步消息提醒修复：底部消息标签改为基于全局通知列表和会话列表聚合刷新徽章。
 - 已同步帖子详情页方案：列表卡片改为摘要展示，点击后进入全屏详情页查看完整正文与全部评论。
 - 已同步评论互动扩展：详情页内评论支持点赞、收藏与底部输入栏发送评论。
 - 已同步评论楼层模型：评论支持一级楼中楼回复，回复评论仍归属原楼层。

@@ -340,13 +340,6 @@ export const notificationsService = {
       method: 'PUT',
       headers: getAuthHeaders()
     });
-  },
-
-  async getUnreadCount(): Promise<{ count: number }> {
-    const response = await fetch(`${API_BASE_URL}/api/notifications/unread-count`, {
-      headers: getAuthHeaders()
-    });
-    return handleResponse(response);
   }
 };
 
