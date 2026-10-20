@@ -61,6 +61,64 @@ export async function ensureSchema() {
       await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 
       await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          password_hash VARCHAR(64) NOT NULL,
+          nickname VARCHAR(100) NOT NULL,
+          avatar_seed TEXT,
+          last_active TIMESTAMP DEFAULT NOW(),
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+          id SERIAL PRIMARY KEY,
+          token VARCHAR(64) UNIQUE NOT NULL,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS posts (
+          id UUID PRIMARY KEY,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
+          tags TEXT[],
+          likes_count INTEGER DEFAULT 0,
+          collections_count INTEGER DEFAULT 0,
+          comments_count INTEGER DEFAULT 0,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id UUID PRIMARY KEY,
+          post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          content TEXT NOT NULL,
+          likes_count INTEGER DEFAULT 0,
+          collections_count INTEGER DEFAULT 0,
+          root_comment_id UUID REFERENCES comments(id) ON DELETE CASCADE,
+          reply_to_comment_id UUID REFERENCES comments(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS likes (
+          id SERIAL PRIMARY KEY,
+          post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(post_id, user_id)
+        )
+      `);
+
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS collections (
           id SERIAL PRIMARY KEY,
           post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
@@ -176,6 +234,13 @@ export async function ensureSchema() {
         END $$;
       `);
 
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token)');
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_auth_tokens_user_id ON auth_tokens(user_id)');
       await pool.query('CREATE INDEX IF NOT EXISTS idx_collections_user_id ON collections(user_id)');
       await pool.query('CREATE INDEX IF NOT EXISTS idx_collections_post_id ON collections(post_id)');
       await pool.query('CREATE INDEX IF NOT EXISTS idx_comments_root_comment_id ON comments(root_comment_id)');
