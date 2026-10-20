@@ -29,15 +29,14 @@ TwoWor1ds 是一个以文字社交为核心的全栈项目，前端基于 React 
 
 - Express
 - PostgreSQL
-- `pg`
-- `jsonwebtoken`
+- `pg`（连接池 + 运行时 Schema 自检）
 - `bcryptjs`
-- Nodemailer
+- Nodemailer（SMTP 邮件服务）
 
 ### 部署
 
-- Vercel
-- Railway PostgreSQL
+- Vercel（前后端一体部署）
+- Neon PostgreSQL（免费版，服务端数据库）
 
 ## 项目结构
 
@@ -60,72 +59,3 @@ TwoWor1ds 是一个以文字社交为核心的全栈项目，前端基于 React 
 ├── package.json
 └── vercel.json
 ```
-
-## 本地运行
-
-### 1. 安装依赖
-
-```bash
-npm install
-```
-
-### 2. 配置环境变量
-
-复制 `.env.example` 并填写真实值：
-
-```bash
-cp .env.example .env
-```
-
-需要至少配置：
-
-- `DATABASE_URL`
-- `DATABASE_SSL`
-- `DATABASE_SSL_REJECT_UNAUTHORIZED`
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_SECURE`
-- `SMTP_USER`
-- `SMTP_PASS`
-- `SMTP_FROM`
-
-### 3. 初始化数据库
-
-```bash
-npm run init-db
-```
-
-### 4. 启动前端开发环境
-
-```bash
-npm run dev
-```
-
-## 常用命令
-
-```bash
-npm run dev
-npm run build
-npm run lint
-npm run preview
-npm run init-db
-```
-
-## 部署说明
-
-- 前端和后端统一部署在 Vercel
-- `vercel.json` 已配置 SPA 路由回退与 `/api` 转发
-- 后端数据库结构支持运行时自检与自动补齐
-
-## 文档
-
-- 前端文档：`docx/frontend.md`
-- 后端文档：`docx/backend.md`
-
-## 当前状态
-
-- 已支持头像上传与真实头像显示
-- 已支持帖子和评论发布时间展示
-- 已支持聊天框删除
-- 已修复游客与注册账号聊天消息接收问题
-- 已修复底部消息标签未读数字在非消息页不刷新的问题
